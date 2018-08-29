@@ -1,25 +1,37 @@
 #coding :utf-8
 
-#criado em python 3.6.5
-
 import socket
+import subprocess
+from time import sleep
 
 host = '127.0.0.1'
 porta = 5000
-
-tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-tcp.connect((host,porta)) 
 msg = ""
+tamanho=0
 while True:
-	msg = raw_input ("digite uma msgn ")
-	print (msg)
-	tcp.sendall(msg)
-	if msg == 'SAIDA':
+	try:
+		tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		tcp.connect((host,porta))
+	except:
+		print ('\033[0;31;40mNao conectado no servidor\033[m')
+	msg = input("digite uma msgn ")
+	if msg == 'SAIDA' or msg == 'saida':
 		print ("finalizando conexao")
 		tcp.close()
 		break
+	print (msg)
 	try:
-		retorno = tcp.recv(100000)
+		tcp.sendall(bytes(msg, 'utf-8'))
+		tamanho = tcp.recv(10)
+		tamanho = int(tamanho.decode('utf-8'))
+		if tamanho > 0:
+			retorno = tcp.recv(tamanho)
+			retorno = retorno.decode('utf-8')
+		print ('\033[0;31;40mExecutado do servidor!!!!\033[m')
 		print (retorno)
+		tcp.close()
+		sleep(1.5)
 	except:
-		print("nao houve retorno")
+		print ('\033[0;31;40mExecutado local!!!!\033[m')
+		retorno = subprocess.getoutput(msg)
+		print (retorno)

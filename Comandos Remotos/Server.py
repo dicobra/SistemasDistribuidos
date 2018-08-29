@@ -1,30 +1,30 @@
 #coding :utf-8
 
-#criado em python 3.6.5
-
 import socket
 import subprocess
+import time
 
 porta = 5000
-
 tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 tcp.bind(("",porta))
 tcp.listen(1)
-
 while True:
 	con, cliente = tcp.accept()
-	print ("Cliente conectado: ",cliente)
-	while True:
-		msg = con.recv(2048)
-		if msg == 'SAIDA':
-			print ("finalizando conexao do cliente", cliente)
+	while True:		
+		print ("Cliente conectado:",cliente)
+		cmd = con.recv(1024)
+		cmd= cmd.decode('utf-8')
+		if cmd == 'SAIDA' or cmd == 'saida':
+			print ("finalizando conexao")
 			con.close()
 			break
-		try:
-			print ("Comando ",msg)
-			lista = msg.split(" ")
-			retorno = subprocess.check_output(lista)
-			con.sendall(retorno)
-		except:
-			print("ERRO AO CHECAR COMANDO.")
-			con.sendall("ERRO AO CHECAR COMANDO.")
+		print ("Comando --->",cmd)
+		retorno = subprocess.getoutput(cmd)
+		tamanho = len(retorno)
+		if tamanho == 0:
+			retorno = 'Comando sem retorno'
+			tamanho = len(retorno)		
+		con.send(bytes(str(tamanho).zfill(10), 'utf-8'))
+		con.send(bytes(retorno,'utf-8'))
+		break
+tcp.close()
